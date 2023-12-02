@@ -34,13 +34,7 @@ var (
 )
 
 func main() {
-	file, err := os.Open(inputFile)
-	if err != nil {
-		fmt.Fprint(os.Stderr, err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(os.Stdin)
 
 	resultsStr := []string{}
 	for scanner.Scan() {
