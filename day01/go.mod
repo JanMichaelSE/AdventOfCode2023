@@ -1,3 +1,0 @@
-module github.com/janmichaelse/aoc/day1
-
-go 1.21.3
