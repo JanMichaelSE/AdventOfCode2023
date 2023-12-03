@@ -27,10 +27,8 @@ func main() {
 		valuesStr := strings.Split(text, ":")
 		trimmedValuesStr := strings.Trim(valuesStr[1], " ")
 		cubesColorMap[counter] = strings.Split(strings.ReplaceAll(trimmedValuesStr, ";", ","), ",")
-		fmt.Println("Line parsed: ", cubesColorMap[counter])
 
 		counter++
-		break
 	}
 
 	cubeMaxPerGame := map[int][3]int{}
@@ -56,7 +54,32 @@ func main() {
 		}
 	}
 
+	totalPossibleGames := 0
+	totalSum := 0
 	for i, values := range cubeMaxPerGame {
-		fmt.Printf("Game %v: %v", i, values)
+
+		possible := true
+		totalPower := 1
+		for j, cube := range values {
+			switch {
+			case j == 0 && cube > greens:
+				possible = false
+			case j == 1 && cube > blues:
+				possible = false
+			case j == 2 && cube > reds:
+				possible = false
+			}
+
+			totalPower *= cube
+		}
+
+		totalSum += totalPower
+
+		if possible {
+			totalPossibleGames += i
+		}
 	}
+
+	fmt.Println("Total Possible Games:", totalPossibleGames)
+	fmt.Println("Total Power Sum:", totalSum)
 }
