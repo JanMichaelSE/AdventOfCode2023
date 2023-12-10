@@ -1,70 +1,55 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"image"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"unicode"
 )
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	var schematic []string
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "" {
-			break
+	input, _ := os.ReadFile("input.txt")
+
+	grid := map[image.Point]rune{}
+	for y, s := range strings.Fields(string(input)) {
+		for x, r := range s {
+			if r != '.' && !unicode.IsDigit(r) {
+				grid[image.Point{x, y}] = r
+			}
 		}
-		schematic = append(schematic, line)
 	}
 
-	totalGearRatio := 0
-	for y, row := range schematic {
-		for x, ch := range row {
-			if ch == '*' {
-				partNumbers := getAdjacentPartNumbers(schematic, y, x)
-				if len(partNumbers) == 2 {
-					totalGearRatio += partNumbers[0] * partNumbers[1]
+	part1, part2 := 0, 0
+	parts := map[image.Point][]int{}
+	for y, s := range strings.Fields(string(input)) {
+		for _, m := range regexp.MustCompile(`\d+`).FindAllStringIndex(s, -1) {
+			bounds := map[image.Point]struct{}{}
+			for x := m[0]; x < m[1]; x++ {
+				for _, d := range []image.Point{
+					{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1},
+				} {
+					bounds[image.Point{x, y}.Add(d)] = struct{}{}
+				}
+			}
+
+			n, _ := strconv.Atoi(s[m[0]:m[1]])
+			for p := range bounds {
+				if _, ok := grid[p]; ok {
+					parts[p] = append(parts[p], n)
+					part1 += n
 				}
 			}
 		}
 	}
 
-	fmt.Println("Total Gear Ratio is:", totalGearRatio)
-}
-
-func getAdjacentPartNumbers(schematic []string, y, x int) []int {
-	directions := []struct{ dx, dy int }{
-		{0, -1}, {0, 1}, {-1, 0}, {1, 0},
-	}
-
-	var partNumbers []int
-	for _, dir := range directions {
-		newX, newY := x+dir.dx, y+dir.dy
-		if newY >= 0 && newY < len(schematic) && newX >= 0 && newX < len(schematic[newY]) {
-			if number, ok := getNumberAt(schematic, newY, newX); ok {
-				partNumbers = append(partNumbers, number)
-			}
+	for p, ns := range parts {
+		if grid[p] == '*' && len(ns) == 2 {
+			part2 += ns[0] * ns[1]
 		}
 	}
-
-	return partNumbers
-}
-
-func getNumberAt(schematic []string, y, x int) (int, bool) {
-	if !unicode.IsDigit(rune(schematic[y][x])) {
-		return 0, false
-	}
-
-	start, end := x, x
-	for start > 0 && unicode.IsDigit(rune(schematic[y][start-1])) {
-		start--
-	}
-	for end < len(schematic[y])-1 && unicode.IsDigit(rune(schematic[y][end+1])) {
-		end++
-	}
-
-	number, _ := strconv.Atoi(schematic[y][start : end+1])
-	return number, true
+	fmt.Println("Part 1 Answer:", part1)
+	fmt.Println("Part 2 Answer:", part2)
 }
